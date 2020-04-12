@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 
 const authorize = (req, res) => {
@@ -9,6 +10,10 @@ const authorize = (req, res) => {
     .then((hashedPassword) => {
       console.log('Hashed Password: ', hashedPassword);
       Admin.add(email, hashedPassword);
+      jwt.sign( { email, hashedPassword }, 'secret', (err, encryptedPayload) => {
+         
+        res.status(201).json( {token: encryptedPayload} );
+      }
     })
     .then(() => res.status(201).send('Admin account created.'))
     .catch((err) => {
@@ -16,11 +21,13 @@ const authorize = (req, res) => {
       res.send(err);
     });
 };
-
+n 
 const authenticate = async (req, res, next) => {
+  
+  if !req.cookies()
   const { email, password } = req.body;
 
-  try {
+  try { 
     const user = await Admin.getByEmail(email);
 
     if (!user) {
